@@ -323,25 +323,29 @@
 
         .video-container {
             margin: 15px 0;
-            max-width: 400px;
+            max-width: 600px;
             position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
             overflow: hidden;
             border-radius: 2px;
             box-shadow: 0 0 20px rgba(255,255,255,0.05);
             transition: all 0.3s ease;
+            background: #000;
         }
 
-        .video-container img {
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: auto;
-            transition: all 0.3s ease;
-            filter: grayscale(0.3) contrast(1.1);
+            height: 100%;
+            border: none;
         }
 
-        .video-container:hover img {
-            transform: scale(1.02);
-            filter: grayscale(0) contrast(1.2);
-            transition: all 0.3s ease;
+        /* Estilos para resaltar los controles de Vimeo al pasar el mouse */
+        .video-container:hover {
+            box-shadow: 0 0 30px rgba(255,255,255,0.15);
         }
 
         .content {
@@ -605,16 +609,52 @@
     </div>
 
     <script>
-        let projects = [];
+       let projects = [
+    {
+        titulo: "El Viaje",
+        genero: "Drama",
+        director: "Ana García",
+        duracion: "15",
+        resolucion: "1080p",
+        sinopsis: "Un joven emprende un viaje de autodescubrimiento a través de la ciudad nocturna",
+        link: "https://player.vimeo.com/video/824804224",  // ID ejemplo
+        comments: [],
+        showAllComments: false
+    },
+    {
+        titulo: "Memorias",
+        genero: "Documental",
+        director: "Carlos Ruiz",
+        duracion: "20",
+        resolucion: "4K",
+        sinopsis: "Explorando las memorias de los habitantes más antiguos del barrio",
+        link: "https://player.vimeo.com/video/824804221",  // ID ejemplo
+        comments: [],
+        showAllComments: false
+    },
+    {
+        titulo: "Luz y Sombra",
+        genero: "Experimental",
+        director: "María Torres",
+        duracion: "8",
+        resolucion: "1440p",
+        sinopsis: "Una exploración visual de la dualidad en la naturaleza humana",
+        link: "https://player.vimeo.com/video/824804228",  // ID ejemplo
+        comments: [],
+        showAllComments: false
+    }
+];
+        
         let currentUser = JSON.parse(localStorage.getItem('currentUser'));
         let isLoginMode = true;
 
         window.addEventListener('load', () => {
             setTimeout(() => {
                 document.querySelector('.loader-container').classList.add('fade-out');
-                loadProjects();
+                updateFilters();
+                renderProjects(projects);
                 updateLoginButton();
-            }, 1500); // Muestra el loader por 1.5 segundos
+            }, 1500);
         });
 
         function updateLoginButton() {
@@ -689,34 +729,6 @@
             localStorage.setItem('currentUser', JSON.stringify(newUser));
             updateLoginButton();
             toggleAuthModal();
-        }
-        
-        async function loadProjects() {
-            try {
-                const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRtmM54oXsT9vxwM33oGHDZZyOIvRaZflPNjLaLGxbQkFkawPejfX6v9amGWmv9meIKeAp7PvRgc9dw/pub?output=csv');
-                const data = await response.text();
-                const rows = data.split('\n').slice(1);
-                
-                projects = rows.map(row => {
-                    const [titulo, genero, director, duracion, resolucion, sinopsis, link] = row.split(',');
-                    return {
-                        titulo, 
-                        genero, 
-                        director, 
-                        duracion, 
-                        resolucion, 
-                        sinopsis, 
-                        link,
-                        comments: JSON.parse(localStorage.getItem(`comments_${titulo}`) || '[]'),
-                        showAllComments: false
-                    };
-                });
-                
-                updateFilters();
-                renderProjects(projects);
-            } catch (error) {
-                console.error('Error cargando los proyectos:', error);
-            }
         }
 
         function normalizeText(text) {
@@ -897,9 +909,15 @@
                         <p>${project.duracion}, ${project.resolucion}</p>
                         <p>${project.sinopsis}</p>
                         <div class="video-container">
-                            <a href="${project.link}" target="_blank" onclick="addToHistory('${project.titulo}')">
-                                <img src="https://placehold.co/600x400/png" alt="Video thumbnail">
-                            </a>
+                            <iframe 
+                                src="${project.link}?autoplay=0&title=0&byline=0&portrait=0&controls=1" 
+                                width="100%" 
+                                height="338" 
+                                frameborder="0" 
+                                allow="autoplay; fullscreen; picture-in-picture" 
+                                allowfullscreen
+                                style="position:absolute;top:0;left:0;width:100%;height:100%;">
+                            </iframe>
                         </div>
                     </div>
                     <div class="comments-section">
