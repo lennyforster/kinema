@@ -114,24 +114,22 @@
 
         .video-container {
             margin: 15px 0;
-            max-width: 400px;
+            max-width: 100%;
             position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
             overflow: hidden;
             border-radius: 2px;
             box-shadow: 0 0 20px rgba(255,255,255,0.05);
             transition: all 0.3s ease;
         }
 
-        .video-container img {
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: auto;
-            transition: all 0.3s ease;
-            filter: grayscale(0.3) contrast(1.1);
-        }
-
-        .video-container:hover img {
-            transform: scale(1.02);
-            filter: grayscale(0) contrast(1.2);
+            height: 100%;
             transition: all 0.3s ease;
         }
 
@@ -205,8 +203,15 @@
         }
 
         .nav-button:hover:not(:disabled) {
-            color: rgba(255,255,255,1);
+            color: rgba(255,255,255,0.9);
             border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+        }
+
+        body.light-mode .nav-button:hover:not(:disabled) {
+            color: rgba(0,0,0,0.9);
+            border-color: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.1);
         }
 
         .nav-button:disabled {
@@ -320,9 +325,9 @@
 
     <div class="container">
         <div class="recomendacion-card active" data-index="0">
-            <h2>La Soledad Urbana</h2>
+            <h2>La Soledad Urbana <span style="font-size: 12px; opacity: 0.6;">Recomendado el 15 de octubre, 2023</span></h2>
             <div class="video-container">
-                <img src="placeholder-thumbnail.jpg" alt="Thumbnail del proyecto recomendado">
+                <iframe src="https://player.vimeo.com/video/76979871" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
             </div>
             <div class="metadata">
                 <p>Director: Juan Pérez</p>
@@ -333,9 +338,9 @@
         </div>
 
         <div class="recomendacion-card" data-index="1">
-            <h2>Conexiones Digitales</h2>
+            <h2>Conexiones Digitales <span style="font-size: 12px; opacity: 0.6;">Recomendado el 8 de octubre, 2023</span></h2>
             <div class="video-container">
-                <img src="placeholder-thumbnail-2.jpg" alt="Thumbnail del proyecto recomendado">
+                <iframe src="https://player.vimeo.com/video/347119375" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
             </div>
             <div class="metadata">
                 <p>Director: María González</p>
@@ -346,9 +351,9 @@
         </div>
 
         <div class="recomendacion-card" data-index="2">
-            <h2>Nocturnos</h2>
+            <h2>Nocturnos <span style="font-size: 12px; opacity: 0.6;">Recomendado el 1 de octubre, 2023</span></h2>
             <div class="video-container">
-                <img src="placeholder-thumbnail-3.jpg" alt="Thumbnail del proyecto recomendado">
+                <iframe src="https://player.vimeo.com/video/232554958" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
             </div>
             <div class="metadata">
                 <p>Director: Carlos Ruiz</p>
@@ -362,10 +367,6 @@
             <button class="nav-button" onclick="navigateProjects(-1)" disabled>← Anterior</button>
             <button class="nav-button" onclick="navigateProjects(1)">Siguiente →</button>
         </div>
-    </div>
-
-    <div class="container" style="text-align: left;">
-        <a href="index.html" class="back-link">← Volver</a>
     </div>
 
     <!-- Modal de autenticación -->
