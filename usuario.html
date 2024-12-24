@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KINEMA - Perfil de Usuario</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            margin: 0;
+            padding: 0;
+            line-height: 1.4;
+            background: #000;
+            color: rgba(255,255,255,0.8);
+            letter-spacing: 0.02em;
+        }
+
+        body.dark-mode {
+            background: #fff;
+            color: #000;
+        }
+
+        .header {
+            margin: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        body.dark-mode .header {
+            background: rgba(255,255,255,0.95);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .user-info {
+            padding: 20px;
+        }
+
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+
+        body.dark-mode .section {
+            border-color: rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            margin-top: 0;
+            color: rgba(255,255,255,0.9);
+        }
+
+        body.dark-mode .section h2 {
+            color: rgba(0,0,0,0.9);
+        }
+
+        .video-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .video-item {
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 2px;
+        }
+
+        body.dark-mode .video-item {
+            border-color: rgba(0,0,0,0.1);
+        }
+
+        .button {
+            display: inline-block;
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+        }
+
+        body.dark-mode .button {
+            border: 1px solid rgba(0,0,0,0.1);
+            background: #fff;
+            color: #000;
+        }
+
+        body.dark-mode .button:hover {
+            border-color: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.1);
+        }
+
+        .remove-button {
+            padding: 4px 8px;
+            margin-left: 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Perfil de Usuario</h1>
+        <div>
+            <a href="#" class="button" onclick="toggleDarkMode()">MODO</a>
+            <a href="index.html" class="button">VOLVER</a>
+            <a href="#" class="button" onclick="logout()">CERRAR SESIÓN</a>
+        </div>
+    </div>
+
+    <div class="user-info">
+        <div class="section">
+            <h2>Historial de Visualización</h2>
+            <div class="video-list" id="historyList">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Lista de Reproducción</h2>
+            <div class="video-list" id="watchlist">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        
+        if (!currentUser) {
+            window.location.href = 'index.html';
+        }
+
+        window.addEventListener('load', () => {
+            renderHistory(currentUser.history);
+            renderWatchlist(currentUser.watchlist);
+        });
+
+        function renderHistory(history) {
+            const container = document.getElementById('historyList');
+            container.innerHTML = history.map(title => `
+                <div class="video-item">
+                    <span>${title}</span>
+                    <button class="button remove-button" onclick="removeFromHistory('${title}')">Eliminar</button>
+                </div>
+            `).join('') || '<p>No hay videos en el historial</p>';
+        }
+
+        function renderWatchlist(watchlist) {
+            const container = document.getElementById('watchlist');
+            container.innerHTML = watchlist.map(title => `
+                <div class="video-item">
+                    <span>${title}</span>
+                    <button class="button remove-button" onclick="removeFromWatchlist('${title}')">Eliminar</button>
+                </div>
+            `).join('') || '<p>No hay videos en la lista de reproducción</p>';
+        }
+
+        function removeFromHistory(title) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(u => u.username === currentUser.username);
+            
+            users[userIndex].history = users[userIndex].history.filter(t => t !== title);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            currentUser = users[userIndex];
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            renderHistory(currentUser.history);
+        }
+
+        function removeFromWatchlist(title) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(u => u.username === currentUser.username);
+            
+            users[userIndex].watchlist = users[userIndex].watchlist.filter(t => t !== title);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            currentUser = users[userIndex];
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            renderWatchlist(currentUser.watchlist);
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+    </script>
+</body>
+</html>

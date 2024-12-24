@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KINEMA - Cortometrajes Independientes</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            margin: 0;
+            padding: 0;
+            line-height: 1.4;
+            background: #000;
+            color: rgba(255,255,255,0.8);
+            letter-spacing: 0.02em;
+            transition: all 0.3s ease;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body.light-mode {
+            background: #fff;
+            color: rgba(0,0,0,0.8);
+        }
+
+        body.light-mode .header {
+            background: rgba(255,255,255,0.4);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        body.light-mode .recomendacion-card {
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(0,0,0,0.1);
+            color: rgba(0,0,0,0.8);
+        }
+
+        body.light-mode .back-link, 
+        body.light-mode .info-button, 
+        body.light-mode .dark-mode-toggle, 
+        body.light-mode .login-button,
+        body.light-mode .nav-button {
+            color: rgba(0,0,0,0.6);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        body.light-mode h2 {
+            color: rgba(0,0,0,0.95);
+        }
+
+        body.light-mode .metadata {
+            color: rgba(0,0,0,0.6);
+        }
+
+        /* Loader styles */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top: 2px solid rgba(255,255,255,0.8);
+            animation: spin 1s linear infinite;
+            position: relative;
+        }
+
+        .loader::after {
+            content: "KINEMA";
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .recomendacion-card {
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 2px;
+            padding: 20px;
+            background: rgba(0,0,0,0.6);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .recomendacion-card.active {
+            display: block;
+        }
+
+        .video-container {
+            margin: 15px 0;
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .video-container img {
+            width: 100%;
+            height: auto;
+            transition: all 0.3s ease;
+            filter: grayscale(0.3) contrast(1.1);
+        }
+
+        .video-container:hover img {
+            transform: scale(1.02);
+            filter: grayscale(0) contrast(1.2);
+            transition: all 0.3s ease;
+        }
+
+        .back-link, .info-button, .dark-mode-toggle, .login-button {
+            text-decoration: none;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 3px;
+            display: inline-block;
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover, .info-button:hover, .dark-mode-toggle:hover, .login-button:hover {
+            color: rgba(255,255,255,1);
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .metadata {
+            margin-top: 10px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            margin: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            text-align: left;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .header-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+            width: auto;
+            margin-left: auto;
+            transition: all 0.3s ease;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .nav-button {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6);
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .nav-button:hover:not(:disabled) {
+            color: rgba(255,255,255,1);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        @media (min-width: 768px) {
+            .header {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+            
+            .header-buttons {
+                margin-left: auto;
+                width: auto;
+            }
+        }
+
+        h2 {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 18px;
+            margin: 3px 0;
+            color: rgba(255,255,255,0.95);
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Estilos para el sistema de autenticación */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .auth-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #000;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 2px;
+            min-width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .auth-form input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            font-family: 'Space Mono', monospace;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .auth-form button {
+            width: 100%;
+            padding: 12px;
+            margin: 16px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            font-family: 'Space Mono', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 16px;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container">
+        <div class="loader"></div>
+    </div>
+
+    <div class="header">
+        <div style="color: rgba(255,255,255,0.4)">_</div>
+        <p>KINEMA es un espacio dedicado a la difusión y celebración del cine independiente</p>
+        <div class="header-buttons">
+            <a href="#" class="dark-mode-toggle" onclick="toggleDarkMode()">MODO</a>
+            <a href="index.html" class="back-link">CATÁLOGO</a>
+            <a href="#" class="info-button">INFO</a>
+            <a href="#" class="login-button" onclick="toggleAuthModal()">LOGIN</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="recomendacion-card active" data-index="0">
+            <h2>La Soledad Urbana</h2>
+            <div class="video-container">
+                <img src="placeholder-thumbnail.jpg" alt="Thumbnail del proyecto recomendado">
+            </div>
+            <div class="metadata">
+                <p>Director: Juan Pérez</p>
+                <p>Año: 2023</p>
+                <p>Duración: 15 min</p>
+            </div>
+            <p>Un cortometraje experimental que explora la soledad urbana.</p>
+        </div>
+
+        <div class="recomendacion-card" data-index="1">
+            <h2>Conexiones Digitales</h2>
+            <div class="video-container">
+                <img src="placeholder-thumbnail-2.jpg" alt="Thumbnail del proyecto recomendado">
+            </div>
+            <div class="metadata">
+                <p>Director: María González</p>
+                <p>Año: 2022</p>
+                <p>Duración: 12 min</p>
+            </div>
+            <p>Una historia sobre la conexión humana en tiempos digitales.</p>
+        </div>
+
+        <div class="recomendacion-card" data-index="2">
+            <h2>Nocturnos</h2>
+            <div class="video-container">
+                <img src="placeholder-thumbnail-3.jpg" alt="Thumbnail del proyecto recomendado">
+            </div>
+            <div class="metadata">
+                <p>Director: Carlos Ruiz</p>
+                <p>Año: 2023</p>
+                <p>Duración: 18 min</p>
+            </div>
+            <p>Un documental experimental sobre la vida nocturna en la ciudad.</p>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-button" onclick="navigateProjects(-1)" disabled>← Anterior</button>
+            <button class="nav-button" onclick="navigateProjects(1)">Siguiente →</button>
+        </div>
+    </div>
+
+    <div class="container" style="text-align: left;">
+        <a href="index.html" class="back-link">← Volver</a>
+    </div>
+
+    <!-- Modal de autenticación -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-container">
+            <form class="auth-form" id="authForm">
+                <h2>Iniciar Sesión</h2>
+                <input type="text" id="username" placeholder="Usuario" required>
+                <input type="password" id="password" placeholder="Contraseña" required>
+                <button type="submit">Entrar</button>
+                <div class="auth-toggle" onclick="toggleAuthMode()">
+                    <span id="authToggleText">¿No tienes cuenta? Regístrate</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        let isLoginMode = true;
+        let currentProjectIndex = 0;
+        const totalProjects = document.querySelectorAll('.recomendacion-card').length;
+
+        window.addEventListener('load', function() {
+            const loader = document.querySelector('.loader-container');
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                updateLoginButton();
+            }, 300);
+            updateNavigationButtons();
+        });
+
+        function navigateProjects(direction) {
+            const cards = document.querySelectorAll('.recomendacion-card');
+            cards[currentProjectIndex].classList.remove('active');
+            
+            currentProjectIndex = currentProjectIndex + direction;
+            cards[currentProjectIndex].classList.add('active');
+            
+            updateNavigationButtons();
+        }
+
+        function updateNavigationButtons() {
+            const prevButton = document.querySelector('.nav-button:first-child');
+            const nextButton = document.querySelector('.nav-button:last-child');
+            
+            prevButton.disabled = currentProjectIndex === 0;
+            nextButton.disabled = currentProjectIndex === totalProjects - 1;
+        }
+
+        function updateLoginButton() {
+            const loginButton = document.querySelector('.login-button');
+            if (currentUser) {
+                loginButton.textContent = currentUser.username;
+                loginButton.onclick = () => window.location.href = 'usuario.html';
+            } else {
+                loginButton.textContent = 'LOGIN';
+                loginButton.onclick = toggleAuthModal;
+            }
+        }
+
+        function toggleAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('light-mode');
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            const form = document.getElementById('authForm');
+            const toggleText = document.getElementById('authToggleText');
+            form.querySelector('h2').textContent = isLoginMode ? 'Iniciar Sesión' : 'Registro';
+            toggleText.textContent = isLoginMode ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión';
+        }
+
+        document.getElementById('authForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (isLoginMode) {
+                login(username, password);
+            } else {
+                register(username, password);
+            }
+        });
+
+        function login(username, password) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                updateLoginButton();
+                toggleAuthModal();
+            } else {
+                alert('Usuario o contraseña incorrectos');
+            }
+        }
+
+        function register(username, password) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            if (users.some(u => u.username === username)) {
+                alert('El usuario ya existe');
+                return;
+            }
+
+            const newUser = {
+                username,
+                password,
+                watchlist: [],
+                history: []
+            };
+
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            currentUser = newUser;
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            updateLoginButton();
+            toggleAuthModal();
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('authModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

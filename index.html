@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KINEMA - Cortometrajes Independientes</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            margin: 0;
+            padding: 0;
+            line-height: 1.4;
+            background: #000;
+            color: rgba(255,255,255,0.8);
+            letter-spacing: 0.02em;
+            transition: all 0.3s ease;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Loader styles */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top: 2px solid rgba(255,255,255,0.8);
+            animation: spin 1s linear infinite;
+            position: relative;
+        }
+
+        .loader::after {
+            content: "KINEMA";
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-container.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        body.dark-mode {
+            background: #fff;
+            color: #000;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .header,
+        body.dark-mode .filters {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .project {
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.95);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .back-link, 
+        body.dark-mode .info-button, 
+        body.dark-mode .dark-mode-toggle,
+        body.dark-mode .login-button {
+            color: #000;
+            border: 1px solid rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.95);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .back-link:hover, 
+        body.dark-mode .info-button:hover, 
+        body.dark-mode .dark-mode-toggle:hover,
+        body.dark-mode .login-button:hover {
+            color: #000;
+            border-color: rgba(0,0,0,0.4);
+            background: #fff;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode h2 {
+            color: #000;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode p {
+            color: rgba(0,0,0,0.8);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .search-bar,
+        body.dark-mode select {
+            background: #fff;
+            color: #000;
+            border: 1px solid rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .search-bar:focus,
+        body.dark-mode select:focus {
+            border-color: rgba(0,0,0,0.4);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .projects-divider {
+            border-top: 1px solid rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* Estilos para el sistema de autenticación */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .auth-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #000;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 2px;
+            min-width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .auth-container {
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .auth-form input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            font-family: 'Space Mono', monospace;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .auth-form input {
+            border: 1px solid rgba(0,0,0,0.1);
+            background: #fff;
+            color: #000;
+            transition: all 0.3s ease;
+        }
+
+        .auth-form button {
+            width: 100%;
+            padding: 12px;
+            margin: 16px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            font-family: 'Space Mono', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-form button:hover {
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 16px;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .auth-toggle {
+            color: rgba(0,0,0,0.6);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            margin: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            text-align: left;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .project {
+            margin: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 25px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            .project {
+                grid-template-columns: 3fr 2fr;
+                gap: 20px;
+            }
+
+            .header {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+            
+            .header-buttons {
+                margin-left: auto;
+                width: auto;
+            }
+        }
+        
+        .watch-link {
+            text-decoration: none;
+            color: rgba(255,255,255,0.8);
+            transition: all 0.3s ease;
+        }
+        
+        .back-link, .info-button, .dark-mode-toggle, .login-button {
+            text-decoration: none;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 3px;
+            display: inline-block;
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover, .info-button:hover, .dark-mode-toggle:hover, .login-button:hover {
+            color: rgba(255,255,255,1);
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .header-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+            width: auto;
+            margin-left: auto;
+            transition: all 0.3s ease;
+        }
+
+        h2 {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 18px;
+            margin: 3px 0;
+            color: rgba(255,255,255,0.95);
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        p {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            margin: 8px 0;
+            color: rgba(255,255,255,0.7);
+            transition: all 0.3s ease;
+        }
+
+        .video-container {
+            margin: 15px 0;
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .video-container img {
+            width: 100%;
+            height: auto;
+            transition: all 0.3s ease;
+            filter: grayscale(0.3) contrast(1.1);
+        }
+
+        .video-container:hover img {
+            transform: scale(1.02);
+            filter: grayscale(0) contrast(1.2);
+            transition: all 0.3s ease;
+        }
+
+        .content {
+            width: 100%;
+            margin: 0;
+            background: #000;
+            transition: all 0.3s ease;
+        }
+
+        .filters {
+            margin: 0;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            align-items: center;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar {
+            padding: 12px;
+            margin: 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 2px;
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            min-width: 200px;
+            flex: 1;
+            font-family: 'Space Mono', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 2px;
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            min-width: 180px;
+            font-family: 'Space Mono', monospace;
+            transition: all 0.3s ease;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .projects-divider {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin: 0;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .comments-section {
+            margin-top: 20px;
+            padding: 15px;
+            border-left: 1px solid rgba(255,255,255,0.1);
+            background: inherit;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .comments-section {
+            border-left: 1px solid rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .comment {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 2px;
+            position: relative;
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .comment {
+            border: 1px solid rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.95);
+            color: rgba(0,0,0,0.8);
+            transition: all 0.3s ease;
+        }
+
+        .comment-author {
+            color: inherit;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .comment-text {
+            margin-top: 5px;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .delete-comment {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+
+        .delete-comment:hover {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            font-family: 'Space Mono', monospace;
+            border-radius: 2px;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .comment-form textarea {
+            border: 1px solid rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.95);
+            color: rgba(0,0,0,0.8);
+            transition: all 0.3s ease;
+        }
+
+        .comment-form button {
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            font-family: 'Space Mono', monospace;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .comment-form button {
+            border: 1px solid rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.95);
+            color: rgba(0,0,0,0.8);
+            transition: all 0.3s ease;
+        }
+
+        .show-more-comments {
+            padding: 8px 16px;
+            margin-top: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.8);
+            font-family: 'Space Mono', monospace;
+            cursor: pointer;
+            border-radius: 2px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .show-more-comments {
+            border: 1px solid rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.95);
+            color: rgba(0,0,0,0.8);
+            transition: all 0.3s ease;
+        }
+
+        .watchlist-icon {
+            cursor: pointer;
+            margin-left: 8px;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .watchlist-icon:hover {
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+
+        .watchlist-icon.active {
+            opacity: 1;
+            color: gold;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container">
+        <div class="loader"></div>
+    </div>
+    <div class="content">
+        <div class="header">
+            <div style="color: rgba(255,255,255,0.4)">_</div>
+            <p>KINEMA es un espacio dedicado a la difusión y celebración del cine independiente</p>
+            <div class="header-buttons">
+                <a href="#" class="dark-mode-toggle" onclick="toggleDarkMode()">MODO</a>
+                <a href="recomendacion.html" class="back-link">RECOMENDACIÓN SEMANAL</a>
+                <a href="#" class="info-button">INFO</a>
+                <a href="#" class="login-button" onclick="toggleAuthModal()">LOGIN</a>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <select id="generoFilter" onchange="filterProjects()">
+                <option value="">Todos los géneros</option>
+            </select>
+            <select id="directorFilter" onchange="filterProjects()">
+                <option value="">Todos los directores</option>
+            </select>
+            <select id="duracionFilter" onchange="filterProjects()">
+                <option value="">Todas las duraciones</option>
+                <option value="0-1">0 - 1 min</option>
+                <option value="1-3">1 - 3 min</option>
+                <option value="3-5">3 - 5 min</option>
+                <option value="5-10">5 - 10 min</option>
+                <option value="10-15">10 - 15 min</option>
+                <option value="15-25">15 - 25 min</option>
+                <option value="25+">25+ min</option>
+            </select>
+            <input type="text" class="search-bar" placeholder="Buscar cortometrajes..." onkeyup="filterProjects()">
+        </div>
+        
+        <div class="projects-divider"></div>
+        
+        <div class="projects" id="projectsContainer">
+            <!-- Los proyectos se cargarán dinámicamente aquí -->
+        </div>
+
+        <!-- Modal de autenticación -->
+        <div class="auth-modal" id="authModal">
+            <div class="auth-container">
+                <form class="auth-form" id="authForm">
+                    <h2>Iniciar Sesión</h2>
+                    <input type="text" id="username" placeholder="Usuario" required>
+                    <input type="password" id="password" placeholder="Contraseña" required>
+                    <button type="submit">Entrar</button>
+                    <div class="auth-toggle" onclick="toggleAuthMode()">
+                        <span id="authToggleText">¿No tienes cuenta? Regístrate</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let projects = [];
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        let isLoginMode = true;
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.querySelector('.loader-container').classList.add('fade-out');
+                loadProjects();
+                updateLoginButton();
+            }, 1500); // Muestra el loader por 1.5 segundos
+        });
+
+        function updateLoginButton() {
+            const loginButton = document.querySelector('.login-button');
+            if (currentUser) {
+                loginButton.textContent = currentUser.username;
+                loginButton.onclick = () => window.location.href = 'usuario.html';
+            } else {
+                loginButton.textContent = 'LOGIN';
+                loginButton.onclick = toggleAuthModal;
+            }
+        }
+
+        function toggleAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            const form = document.getElementById('authForm');
+            const toggleText = document.getElementById('authToggleText');
+            form.querySelector('h2').textContent = isLoginMode ? 'Iniciar Sesión' : 'Registro';
+            toggleText.textContent = isLoginMode ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión';
+        }
+
+        document.getElementById('authForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (isLoginMode) {
+                login(username, password);
+            } else {
+                register(username, password);
+            }
+        });
+
+        function login(username, password) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                updateLoginButton();
+                toggleAuthModal();
+            } else {
+                alert('Usuario o contraseña incorrectos');
+            }
+        }
+
+        function register(username, password) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            if (users.some(u => u.username === username)) {
+                alert('El usuario ya existe');
+                return;
+            }
+
+            const newUser = {
+                username,
+                password,
+                watchlist: [],
+                history: []
+            };
+
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            currentUser = newUser;
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            updateLoginButton();
+            toggleAuthModal();
+        }
+        
+        async function loadProjects() {
+            try {
+                const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRtmM54oXsT9vxwM33oGHDZZyOIvRaZflPNjLaLGxbQkFkawPejfX6v9amGWmv9meIKeAp7PvRgc9dw/pub?output=csv');
+                const data = await response.text();
+                const rows = data.split('\n').slice(1);
+                
+                projects = rows.map(row => {
+                    const [titulo, genero, director, duracion, resolucion, sinopsis, link] = row.split(',');
+                    return {
+                        titulo, 
+                        genero, 
+                        director, 
+                        duracion, 
+                        resolucion, 
+                        sinopsis, 
+                        link,
+                        comments: JSON.parse(localStorage.getItem(`comments_${titulo}`) || '[]'),
+                        showAllComments: false
+                    };
+                });
+                
+                updateFilters();
+                renderProjects(projects);
+            } catch (error) {
+                console.error('Error cargando los proyectos:', error);
+            }
+        }
+
+        function normalizeText(text) {
+            return text.toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+        }
+
+        function getDurationRange(duration) {
+            const minutes = parseInt(duration);
+            if (minutes <= 1) return "0-1";
+            if (minutes <= 3) return "1-3";
+            if (minutes <= 5) return "3-5";
+            if (minutes <= 10) return "5-10";
+            if (minutes <= 15) return "10-15";
+            if (minutes <= 25) return "15-25";
+            return "25+";
+        }
+
+        function filterProjects() {
+            const searchTerm = normalizeText(document.querySelector('.search-bar').value);
+            const generoFilter = document.getElementById('generoFilter').value;
+            const directorFilter = document.getElementById('directorFilter').value;
+            const duracionFilter = document.getElementById('duracionFilter').value;
+
+            const filteredProjects = projects.filter(project => {
+                const matchesSearch = Object.values(project).some(value => 
+                    typeof value === 'string' && normalizeText(value).includes(searchTerm)
+                );
+                
+                const matchesGenero = !generoFilter || project.genero === generoFilter;
+                const matchesDirector = !directorFilter || project.director === directorFilter;
+                const matchesDuracion = !duracionFilter || getDurationRange(project.duracion) === duracionFilter;
+
+                return matchesSearch && matchesGenero && matchesDirector && matchesDuracion;
+            });
+
+            renderProjects(filteredProjects);
+        }
+
+        function updateFilters() {
+            const generos = [...new Set(projects.map(p => p.genero))];
+            const directores = [...new Set(projects.map(p => p.director))];
+
+            const generoSelect = document.getElementById('generoFilter');
+            const directorSelect = document.getElementById('directorFilter');
+
+            [
+                {element: generoSelect, values: generos},
+                {element: directorSelect, values: directores}
+            ].forEach(({element, values}) => {
+                values.forEach(value => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = value;
+                    element.appendChild(option);
+                });
+            });
+        }
+
+        function toggleWatchlist(projectTitle) {
+            if (!currentUser) {
+                alert('Debes iniciar sesión para agregar a tu watchlist');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(u => u.username === currentUser.username);
+            
+            if (!users[userIndex].watchlist) {
+                users[userIndex].watchlist = [];
+            }
+
+            const index = users[userIndex].watchlist.indexOf(projectTitle);
+            if (index === -1) {
+                users[userIndex].watchlist.push(projectTitle);
+            } else {
+                users[userIndex].watchlist.splice(index, 1);
+            }
+
+            localStorage.setItem('users', JSON.stringify(users));
+            currentUser = users[userIndex];
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            renderProjects(projects);
+        }
+
+        function isInWatchlist(projectTitle) {
+            return currentUser && currentUser.watchlist && currentUser.watchlist.includes(projectTitle);
+        }
+
+        function addComment(projectTitle, commentText) {
+            if (!currentUser) {
+                alert('Debes iniciar sesión para comentar');
+                return;
+            }
+
+            const comment = {
+                username: currentUser.username,
+                text: commentText,
+                date: new Date().toISOString()
+            };
+
+            const comments = JSON.parse(localStorage.getItem(`comments_${projectTitle}`) || '[]');
+            comments.push(comment);
+            localStorage.setItem(`comments_${projectTitle}`, JSON.stringify(comments));
+
+            const project = projects.find(p => p.titulo === projectTitle);
+            if (project) {
+                project.comments = comments;
+                renderProjects(projects);
+            }
+        }
+
+        function deleteComment(projectTitle, commentIndex) {
+            if (!currentUser) {
+                alert('Debes iniciar sesión para borrar comentarios');
+                return;
+            }
+
+            const comments = JSON.parse(localStorage.getItem(`comments_${projectTitle}`) || '[]');
+            const comment = comments[commentIndex];
+
+            if (comment.username !== currentUser.username) {
+                alert('Solo puedes borrar tus propios comentarios');
+                return;
+            }
+
+            comments.splice(commentIndex, 1);
+            localStorage.setItem(`comments_${projectTitle}`, JSON.stringify(comments));
+
+            const project = projects.find(p => p.titulo === projectTitle);
+            if (project) {
+                project.comments = comments;
+                renderProjects(projects);
+            }
+        }
+
+        function toggleComments(projectTitle) {
+            const project = projects.find(p => p.titulo === projectTitle);
+            if (project) {
+                project.showAllComments = !project.showAllComments;
+                renderProjects(projects);
+            }
+        }
+
+        function addToHistory(projectTitle) {
+            if (currentUser) {
+                const users = JSON.parse(localStorage.getItem('users'));
+                const userIndex = users.findIndex(u => u.username === currentUser.username);
+                
+                if (!users[userIndex].history.includes(projectTitle)) {
+                    users[userIndex].history.push(projectTitle);
+                    localStorage.setItem('users', JSON.stringify(users));
+                    currentUser = users[userIndex];
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                }
+            }
+        }
+
+        function renderProjects(projectsToRender) {
+            const container = document.getElementById('projectsContainer');
+            container.innerHTML = projectsToRender.map(project => {
+                const visibleComments = project.showAllComments ? project.comments : project.comments.slice(0, 3);
+                const hasMoreComments = project.comments.length > 3;
+                const isWatchlisted = isInWatchlist(project.titulo);
+                
+                return `
+                <div class="project">
+                    <div class="project-info">
+                        <h2>${project.titulo} - <em>${project.genero}</em> 
+                            <span class="watchlist-icon ${isWatchlisted ? 'active' : ''}" 
+                                  onclick="toggleWatchlist('${project.titulo}')" 
+                                  title="${isWatchlisted ? 'Quitar de watchlist' : 'Agregar a watchlist'}">
+                                ⏰
+                            </span>
+                        </h2>
+                        <p><em>${project.director}</em></p>
+                        <p>${project.duracion}, ${project.resolucion}</p>
+                        <p>${project.sinopsis}</p>
+                        <div class="video-container">
+                            <a href="${project.link}" target="_blank" onclick="addToHistory('${project.titulo}')">
+                                <img src="https://placehold.co/600x400/png" alt="Video thumbnail">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="comments-section">
+                        <h3>Comentarios</h3>
+                        ${visibleComments.map((comment, index) => `
+                            <div class="comment">
+                                <div class="comment-author">${comment.username}</div>
+                                <div class="comment-text">${comment.text}</div>
+                                ${comment.username === currentUser?.username ? 
+                                    `<span class="delete-comment" onclick="deleteComment('${project.titulo}', ${index})">❌</span>` 
+                                    : ''}
+                            </div>
+                        `).join('')}
+                        ${hasMoreComments ? `
+                            <button class="show-more-comments" onclick="toggleComments('${project.titulo}')">
+                                ${project.showAllComments ? 'Ver menos comentarios' : 'Ver más comentarios'}
+                            </button>
+                        ` : ''}
+                        <form class="comment-form" onsubmit="event.preventDefault(); addComment('${project.titulo}', this.querySelector('textarea').value); this.reset();">
+                            <textarea placeholder="Escribe un comentario..." required></textarea>
+                            <button type="submit">Comentar</button>
+                        </form>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            document.querySelector('.content').style.background = document.body.classList.contains('dark-mode') ? '#fff' : '#000';
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('authModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
